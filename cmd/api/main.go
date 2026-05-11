@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/faqihyugos/coffee-pos/config"
+	"github.com/faqihyugos/coffee-pos/internal/handler"
 	"github.com/faqihyugos/coffee-pos/pkg/database"
 	pkgredis "github.com/faqihyugos/coffee-pos/pkg/redis"
 )
@@ -34,5 +35,11 @@ func main() {
 	defer rdb.Close()
 	fmt.Println("Redis connected.")
 
+	r := handler.NewRouter(cfg.AppEnv)
+
 	fmt.Println("Starting server on port :" + cfg.AppPort)
+	if err := r.Run(":" + cfg.AppPort); err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
 }
