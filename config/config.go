@@ -29,7 +29,7 @@ type Config struct {
 
 	// JWT
 	JWTSecret      string
-	JWTExpiryHours int
+	JWTExpireHours int
 
 	// Midtrans
 	MidtransServerKey string
@@ -72,14 +72,14 @@ func Load() (*Config, error) {
 	}
 
 	// Parse JWT expiry hours; default to 24 if not set or invalid.
-	if raw := os.Getenv("JWT_EXPIRY_HOURS"); raw != "" {
+	if raw := os.Getenv("JWT_EXPIRE_HOURS"); raw != "" {
 		hours, err := strconv.Atoi(raw)
 		if err != nil {
-			return nil, fmt.Errorf("config: JWT_EXPIRY_HOURS must be a valid integer, got %q", raw)
+			return nil, fmt.Errorf("config: JWT_EXPIRE_HOURS must be a valid integer, got %q", raw)
 		}
-		cfg.JWTExpiryHours = hours
+		cfg.JWTExpireHours = hours
 	} else {
-		cfg.JWTExpiryHours = 24
+		cfg.JWTExpireHours = 24
 	}
 
 	if err := cfg.validate(); err != nil {
