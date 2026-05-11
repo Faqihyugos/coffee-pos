@@ -22,14 +22,19 @@ type StockRepository interface {
 	Create(ctx context.Context, movement *entity.StockMovement) error
 	FindByProductID(ctx context.Context, productID string, filter StockFilter) ([]entity.StockMovement, int, error)
 	FindAll(ctx context.Context, filter StockFilter) ([]entity.StockMovement, int, error)
+	WithTx(tx *sql.Tx) StockRepository
 }
 
 type stockRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewStockRepository(db *sql.DB) StockRepository {
+func NewStockRepository(db sqlDB) StockRepository {
 	return &stockRepository{db: db}
+}
+
+func (r *stockRepository) WithTx(tx *sql.Tx) StockRepository {
+	return &stockRepository{db: tx}
 }
 
 func (r *stockRepository) Create(ctx context.Context, movement *entity.StockMovement) error {

@@ -27,14 +27,19 @@ type OrderRepository interface {
 	UpdateItem(ctx context.Context, item *entity.OrderItem) error
 	DeleteItem(ctx context.Context, itemID string) error
 	FindItemByID(ctx context.Context, itemID string) (*entity.OrderItem, error)
+	WithTx(tx *sql.Tx) OrderRepository
 }
 
 type orderRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewOrderRepository(db *sql.DB) OrderRepository {
+func NewOrderRepository(db sqlDB) OrderRepository {
 	return &orderRepository{db: db}
+}
+
+func (r *orderRepository) WithTx(tx *sql.Tx) OrderRepository {
+	return &orderRepository{db: tx}
 }
 
 func (r *orderRepository) FindByID(ctx context.Context, id string) (*entity.Order, error) {

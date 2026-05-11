@@ -15,14 +15,19 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 	Update(ctx context.Context, user *entity.User) error
 	FindAll(ctx context.Context) ([]entity.User, error)
+	WithTx(tx *sql.Tx) UserRepository
 }
 
 type userRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(db sqlDB) UserRepository {
 	return &userRepository{db: db}
+}
+
+func (r *userRepository) WithTx(tx *sql.Tx) UserRepository {
+	return &userRepository{db: tx}
 }
 
 func (r *userRepository) FindByID(ctx context.Context, id string) (*entity.User, error) {

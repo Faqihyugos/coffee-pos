@@ -16,14 +16,19 @@ type TableRepository interface {
 	Update(ctx context.Context, table *entity.Table) error
 	Delete(ctx context.Context, id string) error
 	UpdateStatus(ctx context.Context, id string, status string) error
+	WithTx(tx *sql.Tx) TableRepository
 }
 
 type tableRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewTableRepository(db *sql.DB) TableRepository {
+func NewTableRepository(db sqlDB) TableRepository {
 	return &tableRepository{db: db}
+}
+
+func (r *tableRepository) WithTx(tx *sql.Tx) TableRepository {
+	return &tableRepository{db: tx}
 }
 
 func (r *tableRepository) FindByID(ctx context.Context, id string) (*entity.Table, error) {

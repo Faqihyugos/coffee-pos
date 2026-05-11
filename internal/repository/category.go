@@ -16,14 +16,19 @@ type CategoryRepository interface {
 	Create(ctx context.Context, category *entity.Category) error
 	Update(ctx context.Context, category *entity.Category) error
 	Delete(ctx context.Context, id string) error
+	WithTx(tx *sql.Tx) CategoryRepository
 }
 
 type categoryRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewCategoryRepository(db *sql.DB) CategoryRepository {
+func NewCategoryRepository(db sqlDB) CategoryRepository {
 	return &categoryRepository{db: db}
+}
+
+func (r *categoryRepository) WithTx(tx *sql.Tx) CategoryRepository {
+	return &categoryRepository{db: tx}
 }
 
 func (r *categoryRepository) FindByID(ctx context.Context, id string) (*entity.Category, error) {

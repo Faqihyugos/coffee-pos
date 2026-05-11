@@ -17,14 +17,19 @@ type PromoRepository interface {
 	Update(ctx context.Context, promo *entity.Promo) error
 	Delete(ctx context.Context, id string) error
 	IncrementUsedCount(ctx context.Context, id string) error
+	WithTx(tx *sql.Tx) PromoRepository
 }
 
 type promoRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewPromoRepository(db *sql.DB) PromoRepository {
+func NewPromoRepository(db sqlDB) PromoRepository {
 	return &promoRepository{db: db}
+}
+
+func (r *promoRepository) WithTx(tx *sql.Tx) PromoRepository {
+	return &promoRepository{db: tx}
 }
 
 func (r *promoRepository) FindByID(ctx context.Context, id string) (*entity.Promo, error) {

@@ -25,14 +25,19 @@ type ProductRepository interface {
 	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, id string) error
 	UpdateStock(ctx context.Context, id string, stock int) error
+	WithTx(tx *sql.Tx) ProductRepository
 }
 
 type productRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewProductRepository(db *sql.DB) ProductRepository {
+func NewProductRepository(db sqlDB) ProductRepository {
 	return &productRepository{db: db}
+}
+
+func (r *productRepository) WithTx(tx *sql.Tx) ProductRepository {
+	return &productRepository{db: tx}
 }
 
 func (r *productRepository) FindByID(ctx context.Context, id string) (*entity.Product, error) {

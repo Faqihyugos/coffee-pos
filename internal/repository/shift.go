@@ -16,14 +16,19 @@ type ShiftRepository interface {
 	FindAll(ctx context.Context, cashierID string, page, limit int) ([]entity.Shift, int, error)
 	Create(ctx context.Context, shift *entity.Shift) error
 	Close(ctx context.Context, id string, closingCash int64, notes string) error
+	WithTx(tx *sql.Tx) ShiftRepository
 }
 
 type shiftRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewShiftRepository(db *sql.DB) ShiftRepository {
+func NewShiftRepository(db sqlDB) ShiftRepository {
 	return &shiftRepository{db: db}
+}
+
+func (r *shiftRepository) WithTx(tx *sql.Tx) ShiftRepository {
+	return &shiftRepository{db: tx}
 }
 
 func (r *shiftRepository) FindByID(ctx context.Context, id string) (*entity.Shift, error) {

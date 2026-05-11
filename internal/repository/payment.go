@@ -17,14 +17,19 @@ type PaymentRepository interface {
 	UpdateStatus(ctx context.Context, id string, status string, paidAt *time.Time) error
 	UpdateMidtransData(ctx context.Context, id string, token string, url string, midtransOrderID string) error
 	SaveRawNotification(ctx context.Context, id string, raw string) error
+	WithTx(tx *sql.Tx) PaymentRepository
 }
 
 type paymentRepository struct {
-	db *sql.DB
+	db sqlDB
 }
 
-func NewPaymentRepository(db *sql.DB) PaymentRepository {
+func NewPaymentRepository(db sqlDB) PaymentRepository {
 	return &paymentRepository{db: db}
+}
+
+func (r *paymentRepository) WithTx(tx *sql.Tx) PaymentRepository {
+	return &paymentRepository{db: tx}
 }
 
 func (r *paymentRepository) FindByID(ctx context.Context, id string) (*entity.Payment, error) {
