@@ -1,0 +1,10 @@
+CREATE TABLE tables (
+    id          VARCHAR(36)                                NOT NULL,
+    name        VARCHAR(100)                               NOT NULL,
+    capacity    INT                                        NOT NULL DEFAULT 4,
+    status      ENUM('available','occupied','reserved')   NOT NULL DEFAULT 'available',
+    created_at  DATETIME                                   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME                                   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  DATETIME                                   NULL DEFAULT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
