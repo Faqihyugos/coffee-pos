@@ -1,8 +1,7 @@
 package handler
 
 import (
-	"net/http"
-
+	"github.com/faqihyugos/coffee-pos/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,8 +28,5 @@ func NewRouter(appEnv string) *gin.Engine {
 }
 
 func healthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "server is running",
-	})
+	response.OK(c, "server is running", nil)
 }
