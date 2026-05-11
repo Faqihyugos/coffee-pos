@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/faqihyugos/coffee-pos/config"
+	"github.com/faqihyugos/coffee-pos/pkg/database"
+	pkgredis "github.com/faqihyugos/coffee-pos/pkg/redis"
 )
 
 func main() {
@@ -16,5 +18,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Config loaded. Starting server on port :" + cfg.AppPort)
+	db, err := database.NewMySQL(cfg.MysqlDSN())
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+	fmt.Println("MySQL connected.")
+
+	rdb, err := pkgredis.NewRedis(cfg.RedisAddr(), cfg.RedisPassword)
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
+	defer rdb.Close()
+	fmt.Println("Redis connected.")
+
+	fmt.Println("Starting server on port :" + cfg.AppPort)
 }
