@@ -32,6 +32,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	productRepo := repository.NewProductRepository(db)
 	stockRepo := repository.NewStockRepository(db)
 	tableRepo := repository.NewTableRepository(db)
+	promoRepo := repository.NewPromoRepository(db)
 	txMgr := txmanager.New(db)
 
 	// 2. Services
@@ -41,6 +42,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	productService := service.NewProductService(productRepo, categoryRepo)
 	stockService := service.NewStockService(stockRepo, productRepo, txMgr)
 	tableService := service.NewTableService(tableRepo)
+	promoService := service.NewPromoService(promoRepo)
 
 	// 3. Handlers
 	authHandler := NewAuthHandler(authService, v)
@@ -49,6 +51,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	productHandler := NewProductHandler(productService, v)
 	stockHandler := NewStockHandler(stockService, v)
 	tableHandler := NewTableHandler(tableService, v)
+	promoHandler := NewPromoHandler(promoService, v)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -85,6 +88,10 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup.POST("/cashiers", userHandler.Create)
 		ownerGroup.PUT("/cashiers/:id", userHandler.Update)
 		ownerGroup.PATCH("/cashiers/:id/toggle-status", userHandler.ToggleStatus)
+		ownerGroup.GET("/promos", promoHandler.FindAll)
+		ownerGroup.POST("/promos", promoHandler.Create)
+		ownerGroup.PUT("/promos/:id", promoHandler.Update)
+		ownerGroup.DELETE("/promos/:id", promoHandler.Delete)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
