@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"strconv"
+
 	"github.com/faqihyugos/coffee-pos/internal/entity"
+	"github.com/faqihyugos/coffee-pos/internal/repository"
 	"github.com/faqihyugos/coffee-pos/internal/service"
 	"github.com/faqihyugos/coffee-pos/pkg/response"
 	"github.com/faqihyugos/coffee-pos/pkg/validator"
@@ -57,4 +60,40 @@ func (h *StockHandler) Adjust(c *gin.Context) {
 	}
 
 	response.OK(c, "Stok berhasil diupdate", nil)
+}
+
+func (h *StockHandler) GetMovements(c *gin.Context) {
+	productID := c.Param("id")
+
+	page, _ := strconv.Atoi(c.Query("page"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	typeFilter := c.Query("type")
+
+	filter := repository.StockFilter{
+		Page:  page,
+		Limit: limit,
+		Type:  typeFilter,
+	}
+
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+	if filter.Limit <= 0 {
+		filter.Limit = 20
+	}
+
+	movements, total, err := h.stockService.GetMovements(c.Request.Context(), productID, filter)
+	if err != nil {
+		response.NotFound(c, err.Error())
+		return
+	}
+
+	paginatedResponse := PaginatedResponse{
+		Items: movements,
+		Total: total,
+		Page:  filter.Page,
+		Limit: filter.Limit,
+	}
+
+	response.OK(c, "Berhasil", paginatedResponse)
 }

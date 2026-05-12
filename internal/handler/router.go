@@ -71,6 +71,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup.DELETE("/products/:id", productHandler.Delete)
 		ownerGroup.GET("/products/:id/stock", stockHandler.GetStock)
 		ownerGroup.POST("/products/:id/stock/adjustment", stockHandler.Adjust)
+		ownerGroup.GET("/products/:id/stock/movements", stockHandler.GetMovements)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
