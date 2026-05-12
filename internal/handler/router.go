@@ -9,6 +9,7 @@ import (
 	"github.com/faqihyugos/coffee-pos/internal/repository"
 	"github.com/faqihyugos/coffee-pos/internal/service"
 	"github.com/faqihyugos/coffee-pos/pkg/response"
+	"github.com/faqihyugos/coffee-pos/pkg/txmanager"
 	"github.com/faqihyugos/coffee-pos/pkg/validator"
 	"github.com/gin-gonic/gin"
 )
@@ -29,16 +30,20 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	userRepo := repository.NewUserRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	productRepo := repository.NewProductRepository(db)
+	stockRepo := repository.NewStockRepository(db)
+	txMgr := txmanager.New(db)
 
 	// 2. Services
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.JWTExpireHours)
 	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo, categoryRepo)
+	stockService := service.NewStockService(stockRepo, productRepo, txMgr)
 
 	// 3. Handlers
 	authHandler := NewAuthHandler(authService, v)
 	categoryHandler := NewCategoryHandler(categoryService, v)
 	productHandler := NewProductHandler(productService, v)
+	stockHandler := NewStockHandler(stockService, v)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -64,6 +69,8 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup.POST("/products", productHandler.Create)
 		ownerGroup.PUT("/products/:id", productHandler.Update)
 		ownerGroup.DELETE("/products/:id", productHandler.Delete)
+		ownerGroup.GET("/products/:id/stock", stockHandler.GetStock)
+		ownerGroup.POST("/products/:id/stock/adjustment", stockHandler.Adjust)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
