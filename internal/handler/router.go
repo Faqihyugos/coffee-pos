@@ -31,6 +31,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	categoryRepo := repository.NewCategoryRepository(db)
 	productRepo := repository.NewProductRepository(db)
 	stockRepo := repository.NewStockRepository(db)
+	tableRepo := repository.NewTableRepository(db)
 	txMgr := txmanager.New(db)
 
 	// 2. Services
@@ -38,12 +39,14 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo, categoryRepo)
 	stockService := service.NewStockService(stockRepo, productRepo, txMgr)
+	tableService := service.NewTableService(tableRepo)
 
 	// 3. Handlers
 	authHandler := NewAuthHandler(authService, v)
 	categoryHandler := NewCategoryHandler(categoryService, v)
 	productHandler := NewProductHandler(productService, v)
 	stockHandler := NewStockHandler(stockService, v)
+	tableHandler := NewTableHandler(tableService, v)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -72,6 +75,10 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup.GET("/products/:id/stock", stockHandler.GetStock)
 		ownerGroup.POST("/products/:id/stock/adjustment", stockHandler.Adjust)
 		ownerGroup.GET("/products/:id/stock/movements", stockHandler.GetMovements)
+		ownerGroup.GET("/tables", tableHandler.FindAll)
+		ownerGroup.POST("/tables", tableHandler.Create)
+		ownerGroup.PUT("/tables/:id", tableHandler.Update)
+		ownerGroup.DELETE("/tables/:id", tableHandler.Delete)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
