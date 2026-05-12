@@ -36,6 +36,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 
 	// 2. Services
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.JWTExpireHours)
+	userService := service.NewUserService(userRepo, authService)
 	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo, categoryRepo)
 	stockService := service.NewStockService(stockRepo, productRepo, txMgr)
@@ -43,6 +44,7 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 
 	// 3. Handlers
 	authHandler := NewAuthHandler(authService, v)
+	userHandler := NewUserHandler(userService, v)
 	categoryHandler := NewCategoryHandler(categoryService, v)
 	productHandler := NewProductHandler(productService, v)
 	stockHandler := NewStockHandler(stockService, v)
@@ -79,6 +81,10 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup.POST("/tables", tableHandler.Create)
 		ownerGroup.PUT("/tables/:id", tableHandler.Update)
 		ownerGroup.DELETE("/tables/:id", tableHandler.Delete)
+		ownerGroup.GET("/cashiers", userHandler.FindAll)
+		ownerGroup.POST("/cashiers", userHandler.Create)
+		ownerGroup.PUT("/cashiers/:id", userHandler.Update)
+		ownerGroup.PATCH("/cashiers/:id/toggle-status", userHandler.ToggleStatus)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
