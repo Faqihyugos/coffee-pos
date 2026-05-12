@@ -27,12 +27,15 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 
 	// 1. Repositories
 	userRepo := repository.NewUserRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
 
 	// 2. Services
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.JWTExpireHours)
+	categoryService := service.NewCategoryService(categoryRepo)
 
 	// 3. Handlers
 	authHandler := NewAuthHandler(authService, v)
+	categoryHandler := NewCategoryHandler(categoryService, v)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -48,7 +51,11 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 		ownerGroup := v1.Group("/owner")
 		ownerGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 		ownerGroup.Use(middleware.RoleMiddleware(entity.RoleOwner))
-		_ = ownerGroup
+		ownerGroup.GET("/categories", categoryHandler.FindAll)
+		ownerGroup.GET("/categories/:id", categoryHandler.FindByID)
+		ownerGroup.POST("/categories", categoryHandler.Create)
+		ownerGroup.PUT("/categories/:id", categoryHandler.Update)
+		ownerGroup.DELETE("/categories/:id", categoryHandler.Delete)
 
 		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
 		cashierGroup := v1.Group("/cashier")
@@ -63,4 +70,3 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 func healthCheck(c *gin.Context) {
 	response.OK(c, "server is running", nil)
 }
-
