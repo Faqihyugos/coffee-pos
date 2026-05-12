@@ -8,6 +8,7 @@ import (
 	"github.com/faqihyugos/coffee-pos/internal/handler"
 	"github.com/faqihyugos/coffee-pos/pkg/database"
 	pkgredis "github.com/faqihyugos/coffee-pos/pkg/redis"
+	pkgvalidator "github.com/faqihyugos/coffee-pos/pkg/validator"
 )
 
 func main() {
@@ -35,7 +36,8 @@ func main() {
 	defer rdb.Close()
 	fmt.Println("Redis connected.")
 
-	r := handler.NewRouter(cfg.AppEnv)
+	v := pkgvalidator.New()
+	r := handler.NewRouter(db, cfg, v)
 
 	fmt.Println("Starting server on port :" + cfg.AppPort)
 	if err := r.Run(":" + cfg.AppPort); err != nil {
