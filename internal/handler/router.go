@@ -4,6 +4,8 @@ import (
 	"database/sql"
 
 	"github.com/faqihyugos/coffee-pos/config"
+	"github.com/faqihyugos/coffee-pos/internal/entity"
+	"github.com/faqihyugos/coffee-pos/internal/middleware"
 	"github.com/faqihyugos/coffee-pos/internal/repository"
 	"github.com/faqihyugos/coffee-pos/internal/service"
 	"github.com/faqihyugos/coffee-pos/pkg/response"
@@ -41,6 +43,18 @@ func NewRouter(db *sql.DB, cfg *config.Config, v *validator.Validator) *gin.Engi
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 		}
+
+		// Route group untuk owner — semua endpoint di sini butuh login + role owner
+		ownerGroup := v1.Group("/owner")
+		ownerGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		ownerGroup.Use(middleware.RoleMiddleware(entity.RoleOwner))
+		_ = ownerGroup
+
+		// Route group untuk cashier — semua endpoint di sini butuh login + role cashier
+		cashierGroup := v1.Group("/cashier")
+		cashierGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		cashierGroup.Use(middleware.RoleMiddleware(entity.RoleCashier))
+		_ = cashierGroup
 	}
 
 	return r

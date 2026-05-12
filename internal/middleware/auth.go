@@ -70,3 +70,30 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func RoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.GetString("role")
+		if role == "" {
+			response.Unauthorized(c, "Token tidak valid")
+			c.Abort()
+			return
+		}
+
+		allowed := false
+		for _, r := range allowedRoles {
+			if r == role {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed {
+			response.Forbidden(c, "Akses ditolak")
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
